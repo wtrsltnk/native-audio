@@ -16,6 +16,7 @@ LOCAL_PATH := $(call my-dir)
 
 include $(CLEAR_VARS)
 
+LOCAL_MULTILIB  := 64
 LOCAL_MODULE    := native-audio-jni
 LOCAL_SRC_FILES := native-audio-jni.c
 # for native audio

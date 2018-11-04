@@ -31,6 +31,16 @@ if not exist %ANDROID_HOME% (
     goto exit
 )
 
+if "%JAVA_HOME%"=="" (
+    echo 'ANDROID_HOME not set'
+    goto exit
+)
+
+if not exist "%JAVA_HOME%" (
+    echo "Invalid JAVA_HOME ---> %JAVA_HOME%"
+    goto exit
+)
+
 for %%I in (%cd%) do (
     set "_APK_BASENAME=%%~nI"
 )
@@ -39,5 +49,13 @@ echo Run with configuration:
 echo     apk name: %_APK_BASENAME%
 
 set _ADB=%ANDROID_HOME%/platform-tools/adb
+set _INTERMEDIATE="bin/gen/%_APK_BASENAME%.apk.unaligned"
+set _JAVAC="%JAVA_HOME%/bin/javac"
+set _JAR_SIGNER="%JAVA_HOME%/bin/jarsigner"
+set _KEY_TOOL="%JAVA_HOME%/bin/keytool"
+set "_SRC_DIR=%cd%\src"
+set "_BIN_DIR=%cd%\bin"
+set _KEY_STORE=%userprofile%/.keystore
+set _KEY_STORE_PASSWORD='android'
 
-%_ADB% install -r build/%_APK_BASENAME%-debug.apk
+%_ADB% logcat

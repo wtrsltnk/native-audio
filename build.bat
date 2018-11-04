@@ -78,26 +78,43 @@ if exist %_INTERMEDIATE% (
     del %_INTERMEDIATE%
 )
 
-if not exist %_BIN_DIR% (
-    mkdir %_BIN_DIR%
+if not exist build (
+    mkdir build
+)
+
+if not exist build\bin (
+    mkdir build\bin
+)
+
+if not exist build\obj (
+    mkdir build\obj
+)
+
+if not exist build\apk (
+    mkdir build\apk
+)
+
+if exist lib (
+    rmdir /S /Q lib
 )
 
 if exist jni (
     echo Compiling native sources
     call ndk-build
+    move libs lib
 )
 
-%_AAPT%  package -f -m -J gen -M AndroidManifest.xml -S res -I %_ANDROID_CP%
+%_AAPT% package -f -m -J gen -M AndroidManifest.xml -S res -I %_ANDROID_CP%
 
 for /r %%f in (*.java) do (
-    %_JAVAC% -classpath %_ANDROID_CP%;bin -d bin -target 1.7 -source 1.7 %%f
+    %_JAVAC% -classpath %_ANDROID_CP%;build/bin;build/obj -d build/obj -target 1.7 -source 1.7 %%f
 )
 
-call %_DX% --dex --output=classes.dex bin
+call %_DX% --dex --output=classes.dex build/obj
 
-call %_AAPT% package -f -M AndroidManifest.xml -S res -I %_ANDROID_CP% -F %_APK_BASENAME%.apk.unaligned
+call %_AAPT% package -f -M AndroidManifest.xml -S res -I %_ANDROID_CP% -F build/%_APK_BASENAME%.apk.unaligned
 
-call %_AAPT% add %_APK_BASENAME%.apk.unaligned classes.dex
+call %_AAPT% add build/%_APK_BASENAME%.apk.unaligned classes.dex lib\armeabi-v7a\libnative-audio-jni.so lib\x86\libnative-audio-jni.so
 
 if not exist %_KEY_STORE% (
     call %_KEY_TOOL% -genkey -v -storepass %_KEY_STORE_PASSWORD% -alias androiddebugkey -keypass %_KEY_STORE_PASSWORD% -keyalg RSA -keysize 2048 -validity 10000 -dname "C=US, O=Android, CN=Android Debug"
@@ -105,8 +122,8 @@ if not exist %_KEY_STORE% (
 
 echo .
 echo Signing apk
-call %_JAR_SIGNER% -keystore %_KEY_STORE% -storepass %_KEY_STORE_PASSWORD% %_APK_BASENAME%.apk.unaligned androiddebugkey
+call %_JAR_SIGNER% -keystore %_KEY_STORE% -storepass %_KEY_STORE_PASSWORD% build/%_APK_BASENAME%.apk.unaligned androiddebugkey
 
 echo .
 echo Allinging apk
-call %_ZIPALIGN% -f 4 %_APK_BASENAME%.apk.unaligned %_APK_BASENAME%-debug.apk
+call %_ZIPALIGN% -f 4 build/%_APK_BASENAME%.apk.unaligned build/%_APK_BASENAME%-debug.apk

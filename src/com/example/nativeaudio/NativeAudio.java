@@ -32,10 +32,6 @@ import android.widget.Toast;
 
 public class NativeAudio extends Activity {
 
-    static 
-        {
-           System.loadLibrary("native-audio-jni");
-        }
     //static final String TAG = "NativeAudio";
 
     static final int CLIP_NONE = 0;
